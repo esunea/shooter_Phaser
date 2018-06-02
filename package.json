@@ -1,0 +1,25 @@
+{
+  "name": "shooter_phaser",
+  "version": "1.0.0",
+  "description": "Basic Phaser boilerplate without dependencies.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/esunea/shooter_Phaser.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/esunea/shooter_Phaser/issues"
+  },
+  "homepage": "https://github.com/esunea/shooter_Phaser#readme",
+  "eslintConfig": {
+      "globals": {
+          "Phaser": true,
+          "console": true
+      }
+  }
+}
