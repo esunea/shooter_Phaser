@@ -62,7 +62,6 @@ class Game extends Phaser.State {
         this.foesBullets.physicsBodyType = Phaser.Physics.ARCADE;
 
         for (let i = 0; i < 20; i++) {
-
             let b = this.foesBullets.create(0, 0, 'foesBullet');
             b.name = 'foesBullet' + i;
             b.exists = false;
@@ -101,6 +100,7 @@ class Game extends Phaser.State {
         this.player.body.velocity.x = 0
         this.movePlayer()
         this.player.rotation = game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
+        this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
     }
     bindKey (index, keys, onUp = null, onDown = null) {
         keys.forEach(key => {
@@ -167,6 +167,7 @@ class Game extends Phaser.State {
     addFoe () {
         let c = this.foes.create(this.game.world.randomX, this.game.world.randomY, 'foe')
         c.body.immovable = true;
+        c.anchor.setTo(0.5,0.5)
         c.bulletTime = 0
     }
     foesShoot () {
