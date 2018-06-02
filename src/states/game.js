@@ -84,6 +84,10 @@ class Game extends Phaser.State {
 
         // Physique
         this.game.physics.enable(this.player,Phaser.Physics.ARCADE)
+
+        // Interface
+        console.log("Vies : " + this.hp)
+        this.lives = this.game.add.text(0, 0,"Vies : " + this.hp, {font: "65px Arial", fill: "#ff0044", align: "center"});
     }
 
     update () {
@@ -94,7 +98,7 @@ class Game extends Phaser.State {
         } , null, this);
         this.game.physics.arcade.overlap(this.foesBullets, this.player, (player,foeBullet) => {
             foeBullet.kill()
-            console.log("hit")
+            this.playerGetHit();
         } , null, this);
 
         this.player.body.velocity.y = 0
@@ -187,7 +191,18 @@ class Game extends Phaser.State {
         }
     }
     playerGetHit () {
-        
+        if(this.game.time.now > this.invincibilityTime) {
+            
+            this.hp--;
+            this.invincibilityTime = this.game.time.now + 1000
+            this.lives.setText("Vies :" + this.hp);
+        }
+        if(this.hp <= 0) {
+            // Game Over
+            this.player.kill();
+        }
+
+
     }
 
 }
