@@ -119,6 +119,7 @@ class Game extends Phaser.State {
     setupGamepadInputs () {
       this.game.input.gamepad.start()
       this.gamepad = this.game.input.gamepad.pad1;
+      this.buttonX = this.buttonY = false
     }
 
     update () {
@@ -155,7 +156,19 @@ class Game extends Phaser.State {
           this.keys.up = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) < -0.1
           this.keys.down = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.1
           if(this.gamepad.axis(Phaser.Gamepad.XBOX360_RIGHT_BUMPER)  !== false && this.gamepad.axis(Phaser.Gamepad.XBOX360_RIGHT_BUMPER) > -1) this.shoot()
-          if(this.gamepad.isDown(Phaser.Gamepad.BUTTON_7)) this.shoot()
+          if(this.gamepad.isDown(Phaser.Gamepad.BUTTON_7)) this.shoot();
+          if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_X)){
+            if (this.buttonX === false) {
+              this.addFoe();
+              this.buttonX = true
+            }
+          } else {this.buttonX = false}
+          if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_Y)){
+            if (this.buttonY === false) {
+              this.foesShoot();
+              this.buttonY = true
+            }
+          } else {this.buttonY = false}
           let rightStickX = this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_X) * -1;
           let rightStickY = this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_Y) * -1;
           if(Math.abs(rightStickX) + Math.abs(rightStickY) > .1) {
