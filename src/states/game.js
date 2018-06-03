@@ -29,9 +29,10 @@ class Game extends Phaser.State {
         this.keys = {
             up : 0,
             down : 0,
-            shoot : 0,
+            space : 0,
             left : 0,
-            right : 0
+            right : 0,
+            lclic : 0
         }
 
         console.log("Game!")
@@ -39,11 +40,11 @@ class Game extends Phaser.State {
         this.background.width = this.game.width
         this.background.height = this.game.height
         this.background.inputEnabled = true
-        this.background.events.onInputDown.add(() => this.shoot(),this)
-
+        this.background.events.onInputDown.add(() => this.keys.lclic = 1,this)
+        this.background.events.onInputUp.add(() => this.keys.lclic = 0,this)
         // Sprites
 
-        this.playerEmitter = this.game.add.emitter(game.world.centerX, game.world.centerY, 150);
+        this.playerEmitter = this.game.add.emitter(this.game.world.centerX, this.game.world.centerY, 150);
         this.playerEmitter.makeParticles( [ 'particule1', 'particule2', 'particule3', 'particule4' ] );
         this.playerEmitter.setAlpha(.7, 0, 2000);
         this.playerEmitter.setScale(0.8, 0, 0.8, 0, 2000);
@@ -64,32 +65,11 @@ class Game extends Phaser.State {
         this.bullets.enableBody = true
         this.bullets.physicsBodyType = Phaser.Physics.ARCADE
 
-        for (let i = 0; i < 20; i++) {
-
-
-            let b = this.bullets.create(0, 0, 'bullet');
-            b.name = 'bullet' + i;
-            b.exists = false;
-            b.visible = false;
-            b.animations.add('live');
-            b.checkWorldBounds = true;
-
-            b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
-        }
         this.foesBullets = this.game.add.group();
         this.foesBullets.enableBody = true;
         this.foesBullets.physicsBodyType = Phaser.Physics.ARCADE;
 
 
-        for (let i = 0; i < 20; i++) {
-            let b = this.foesBullets.create(0, 0, 'foesBullet');
-            b.name = 'foesBullet' + i;
-            b.exists = false;
-            b.visible = false;
-            b.animations.add('live')
-            b.checkWorldBounds = true
-            b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
-        }
 
         // UI
         this.gamepadIcon = this.game.add.sprite(10,10,'gamepad')
@@ -98,8 +78,6 @@ class Game extends Phaser.State {
         this.crosshair.anchor.setTo(0.5,0.5)
         this.crosshair.animations.add('live')
         this.crosshair.animations.play('live', 5, true)
-
-
 
         // Inputs
         this.gamepad = null
@@ -114,83 +92,84 @@ class Game extends Phaser.State {
     }
 
     setupInputs () {
-      this.bindKey('up', [Phaser.Keyboard.Z, Phaser.Keyboard.UP])
-      this.bindKey('down', [Phaser.Keyboard.S, Phaser.Keyboard.DOWN])
-      this.bindKey('left', [Phaser.Keyboard.Q, Phaser.Keyboard.LEFT])
-      this.bindKey('right', [Phaser.Keyboard.D, Phaser.Keyboard.RIGHT])
-      this.bindKey('shoot',[Phaser.Keyboard.SPACEBAR],() => this.foesShoot())
+        this.bindKey('up', [Phaser.Keyboard.Z, Phaser.Keyboard.UP])
+        this.bindKey('down', [Phaser.Keyboard.S, Phaser.Keyboard.DOWN])
+        this.bindKey('left', [Phaser.Keyboard.Q, Phaser.Keyboard.LEFT])
+        this.bindKey('right', [Phaser.Keyboard.D, Phaser.Keyboard.RIGHT])
+        this.bindKey('space',[Phaser.Keyboard.SPACEBAR],() => this.foesShoot())
 
-      this.bindKey(null, [Phaser.Keyboard.G], () => this.addFoe())
-      this.bindKey('wow',[Phaser.Keyboard.A])
-    }
+        this.bindKey(null, [Phaser.Keyboard.G], () => this.addFoe())
+        this.bindKey('wow',[Phaser.Keyboard.A])
+  }
 
-    setupGamepadInputs () {
-      this.game.input.gamepad.start()
-      this.gamepad = this.game.input.gamepad.pad1;
-      this.buttonX = this.buttonY = false
-    }
+  setupGamepadInputs () {
+        this.game.input.gamepad.start()
+        this.gamepad = this.game.input.gamepad.pad1;
+        this.buttonX = this.buttonY = false
+  }
 
-    update () {
-        this.game.physics.arcade.overlap(this.bullets, this.foes, (bullet,foe) => {
-            bullet.kill()
-            foe.kill()
-            foe.destroy()
-        } , null, this)
-        this.game.physics.arcade.overlap(this.foesBullets, this.player, (player,foeBullet) => {
-            foeBullet.kill()
-            this.playerGetHit();
-        } , null, this)
+  update () {
+    this.game.physics.arcade.overlap(this.bullets, this.foes, (bullet,foe) => {
+        bullet.kill()
+        foe.kill()
+        foe.destroy()
+    } , null, this)
+    this.game.physics.arcade.overlap(this.foesBullets, this.player, (player,foeBullet) => {
+        foeBullet.kill()
+        this.playerGetHit();
+    } , null, this)
 
-        this.player.body.velocity.y = 0
-        this.player.body.velocity.x = 0
-        this.movePlayer()
+    this.player.body.velocity.y = 0
+    this.player.body.velocity.x = 0
+    this.movePlayer()
 
-        if (!this.game.input.gamepad.supported || !this.game.input.gamepad.active || !this.gamepad.connected) {
-          this.player.rotation = game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
-          this.crosshair.x = game.input.x
-          this.crosshair.y = game.input.y
-        }
-        this.playerEmitter.x = this.player.x - 30  * Math.sin(this.player.rotation)
-        this.playerEmitter.y = this.player.y + 30  * Math.cos(this.player.rotation)
-        this.playerEmitter.on = (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y) > .5)
+    if (!this.game.input.gamepad.supported || !this.game.input.gamepad.active || !this.gamepad.connected) {
+      this.player.rotation = game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
+      this.crosshair.x = game.input.x
+      this.crosshair.y = game.input.y
+  }
+  this.playerEmitter.x = this.player.x - 30  * Math.sin(this.player.rotation)
+  this.playerEmitter.y = this.player.y + 30  * Math.cos(this.player.rotation)
+  this.playerEmitter.on = (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y) > .5)
 
-        this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
-        this.updateGamePad()
-    }
-    updateGamePad () {
-      if (this.game.input.gamepad.supported && this.game.input.gamepad.active && this.gamepad.connected) {
-          this.gamepadIcon.visible = true
-          this.keys.left = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) < -0.1
-          this.keys.right = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) > 0.1
-          this.keys.up = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) < -0.1
-          this.keys.down = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.1
-          if(this.gamepad.axis(Phaser.Gamepad.XBOX360_RIGHT_BUMPER)  !== false && this.gamepad.axis(Phaser.Gamepad.XBOX360_RIGHT_BUMPER) > -1) this.shoot()
+  this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
+  this.updateGamePad()
+}
+updateGamePad () {
+  if (this.game.input.gamepad.supported && this.game.input.gamepad.active && this.gamepad.connected) {
+      this.gamepadIcon.visible = true
+      this.keys.left = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) < -0.1
+      this.keys.right = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) > 0.1
+      this.keys.up = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) < -0.1
+      this.keys.down = this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.1
+      if(this.gamepad.axis(Phaser.Gamepad.XBOX360_RIGHT_BUMPER)  !== false && this.gamepad.axis(Phaser.Gamepad.XBOX360_RIGHT_BUMPER) > -1) this.shoot()
           if(this.gamepad.isDown(Phaser.Gamepad.BUTTON_7)) this.shoot();
-          if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_X)){
-            if (this.buttonX === false) {
-              this.addFoe();
-              this.buttonX = true
-            }
-          } else {this.buttonX = false}
-          if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_Y)){
-            if (this.buttonY === false) {
-              this.foesShoot();
-              this.buttonY = true
-            }
-          } else {this.buttonY = false}
-          let rightStickX = this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_X) * -1;
-          let rightStickY = this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_Y) * -1;
-          if(Math.abs(rightStickX) + Math.abs(rightStickY) > .1) {
-            this.angle = Math.atan2(rightStickY, rightStickX) - Math.PI / 2
-            this.player.rotation = this.angle
-          }
-
-      } else {
-          this.gamepadIcon.visible = false
+      if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_X)){
+        if (this.buttonX === false) {
+          this.addFoe();
+          this.buttonX = true
       }
+  } else {this.buttonX = false}
+  if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_Y)){
+    if (this.buttonY === false) {
+      this.foesShoot();
+      this.buttonY = true
+  }
+} else {this.buttonY = false}
+let rightStickX = this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_X) * -1;
+let rightStickY = this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_Y) * -1;
+if(Math.abs(rightStickX) + Math.abs(rightStickY) > .1) {
+    this.angle = Math.atan2(rightStickY, rightStickX) - Math.PI / 2
+    this.player.rotation = this.angle
+}
 
-    }
-    bindKey (index, keys, onUp = null, onDown = null) {
+} else {
+  this.gamepadIcon.visible = false
+}
+
+}
+bindKey (index, keys, onUp = null, onDown = null) {
+        // n'execute les callbacks que si index == null
         keys.forEach(key => {
             const registredKey = this.game.input.keyboard.addKey(key)
             registredKey.onDown.add(() => {
@@ -226,12 +205,13 @@ class Game extends Phaser.State {
             this.player.body.velocity.y = +300
         }
 
-
-        if (this.keys.shoot) {
-            this.foesShoot()
-            console.log(this.foesBullets.length)
+        if (this.keys.lclic) {
+            this.shoot()
         }
-        if (this.keys.wow) {
+        if (this.keys.space) {
+            this.foesShoot()
+        }
+        if (this.keys.a) {
             console.log("hey" + this.foes.length)
         }
     }
@@ -250,9 +230,11 @@ class Game extends Phaser.State {
     // Player Bullets
     shoot () {
         if (this.game.time.now > this.bulletTime) {
-            const bullet = this.bullets.getFirstExists(false)
+            let bullet = this.bullets.getFirstExists(false)
+            if (!bullet) {
+                bullet = this.initBullet()
 
-            if (bullet) {
+            }
                 let angle = this.player.rotation - Math.PI / 2
                 bullet.reset(this.player.x + 30 * Math.cos(angle), this.player.y + 30 * Math.sin(angle))
                 bullet.anchor.setTo(0.5,0.5)
@@ -260,8 +242,7 @@ class Game extends Phaser.State {
                 bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
                 bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
                 bullet.rotation = angle + Math.PI / 2
-                this.bulletTime = this.game.time.now + 150
-            }
+                this.bulletTime = this.game.time.now + 500
         }
 
 
@@ -272,6 +253,7 @@ class Game extends Phaser.State {
         b.exists = false
         b.visible = false
         b.checkWorldBounds = true
+        b.animations.add('live')
         b.events.onOutOfBounds.add((bullet) => bullet.kill(), this)
         return b
     }
@@ -314,6 +296,7 @@ class Game extends Phaser.State {
         b.name = 'foesBullet' + (this.foesBullets.length + 1)
         b.exists = false
         b.visible = false
+        b.animations.add('live')
         b.checkWorldBounds = true
         b.events.onOutOfBounds.add((bullet) => bullet.kill(), this)
         return b
