@@ -9,9 +9,10 @@ class Game extends Phaser.State {
         this.game.load.image('player', 'assets/player.png')
         this.game.load.image('background', 'assets/background.png')
         this.game.load.image('foe', 'assets/foe.png')
-        this.game.load.spritesheet('bullet', 'assets/bullet-sheet.png', 12, 25);
-        this.game.load.spritesheet('foesBullet', 'assets/foesBullet-sheet.png', 12, 25);
+        this.game.load.spritesheet('bullet', 'assets/bullet-sheet.png', 12, 25)
+        this.game.load.spritesheet('foesBullet', 'assets/foesBullet-sheet.png', 12, 25)
         this.game.load.image('gamepad','assets/gamepad.png')
+        this.game.load.image('crosshair','assets/crosshair.png')
 
         this.game.load.image('particule1','assets/particules/particule1.png')
         this.game.load.image('particule2','assets/particules/particule2.png')
@@ -90,6 +91,8 @@ class Game extends Phaser.State {
         // UI
         this.gamepadIcon = this.game.add.sprite(10,10,'gamepad')
         this.gamepadIcon.opacity = 1
+        this.crosshair = this.game.add.sprite(-99,-99,'crosshair')
+        this.crosshair.anchor.setTo(0.5,0.5)
 
 
         // Inputs
@@ -139,6 +142,8 @@ class Game extends Phaser.State {
 
         this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
         this.updateGamePad()
+        this.crosshair.x = game.input.x
+        this.crosshair.y = game.input.y
     }
     updateGamePad () {
       if (this.game.input.gamepad.supported && this.game.input.gamepad.active && this.gamepad.connected) {
