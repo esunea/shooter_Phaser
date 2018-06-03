@@ -40,37 +40,26 @@ class Game extends Phaser.State {
         this.player.x = window.innerWidth / 2
         this.player.anchor.setTo(0.5,0.5)
         // Bullets
-        this.foes = this.game.add.group();
-        this.foes.enableBody = true;
+        this.foes = this.game.add.group()
+        this.foes.enableBody = true
         this.foes.physicsBodyType = Phaser.Physics.ARCADE
 
-        this.bullets = this.game.add.group();
-        this.bullets.enableBody = true;
-        this.bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        this.bullets = this.game.add.group()
+        this.bullets.enableBody = true
+        this.bullets.physicsBodyType = Phaser.Physics.ARCADE
 
         for (let i = 0; i < 20; i++) {
 
-            let b = this.bullets.create(0, 0, 'bullet');
-            b.name = 'bullet' + i;
-            b.exists = false;
-            b.visible = false;
-            b.checkWorldBounds = true;
+            let b = this.bullets.create(0, 0, 'bullet')
+            b.name = 'bullet' + i
+            b.exists = false
+            b.visible = false
+            b.checkWorldBounds = true
             b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
         }
         this.foesBullets = this.game.add.group();
         this.foesBullets.enableBody = true;
         this.foesBullets.physicsBodyType = Phaser.Physics.ARCADE;
-
-        for (let i = 0; i < 20; i++) {
-            let b = this.foesBullets.create(0, 0, 'foesBullet');
-            b.name = 'foesBullet' + i;
-            b.exists = false;
-            b.visible = false;
-            b.checkWorldBounds = true;
-            b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
-        }
-
-
         // Inputs
         this.bindKey('up', [Phaser.Keyboard.Z, Phaser.Keyboard.UP])
         this.bindKey('down', [Phaser.Keyboard.S, Phaser.Keyboard.DOWN])
@@ -94,11 +83,11 @@ class Game extends Phaser.State {
             bullet.kill()
             foe.kill()
             foe.destroy()
-        } , null, this);
+        } , null, this)
         this.game.physics.arcade.overlap(this.foesBullets, this.player, (player,foeBullet) => {
             foeBullet.kill()
             this.playerGetHit();
-        } , null, this);
+        } , null, this)
 
         this.player.body.velocity.y = 0
         this.player.body.velocity.x = 0
@@ -130,6 +119,7 @@ class Game extends Phaser.State {
     _startGame () {
         console.log("hello")
     }
+    // Player
     movePlayer () {
         if (this.keys.left && !this.keys.right) {
             this.player.body.velocity.x = -300
@@ -145,12 +135,25 @@ class Game extends Phaser.State {
 
         if (this.keys.shoot) {
             this.foesShoot()
-            console.log(this.foesBullets.length); 
+            console.log(this.foesBullets.length)
         }
         if (this.keys.wow) {
             console.log("hey" + this.foes.length)
         }
     }
+    playerGetHit () {
+        if(this.game.time.now > this.invincibilityTime) {
+
+            this.hp--
+            this.invincibilityTime = this.game.time.now + 1000
+            this.lives.setText("Vies :" + this.hp)
+        }
+        if(this.hp <= 0) {
+            // Game Over
+            this.player.kill()
+        }
+    }
+    // Player Bullets
     shoot () {
 
         if (this.game.time.now > this.bulletTime) {
@@ -169,12 +172,25 @@ class Game extends Phaser.State {
 
 
     }
+    initBullet () {
+        let b = this.bullets.create(0, 0, 'bullet')
+        b.name = 'bullet' + (this.bullets.length + 1)
+        b.exists = false
+        b.visible = false
+        b.checkWorldBounds = true
+        b.events.onOutOfBounds.add((bullet) => bullet.kill(), this)
+        return b
+    }
+    // Foes
+
     addFoe () {
         let c = this.foes.create(this.game.world.randomX, this.game.world.randomY, 'foe')
-        c.body.immovable = true;
+        c.body.immovable = true
         c.anchor.setTo(0.5,0.5)
         c.bulletTime = 0
     }
+
+    // Foes Bullets
     foesShoot () {
         this.foes.forEach((foe) => this.addFoesBullet(foe))
     }
@@ -182,7 +198,7 @@ class Game extends Phaser.State {
         if (this.game.time.now > foe.bulletTime) {
             let bullet = this.foesBullets.getFirstExists(false)
             if (!bullet) {
-                bullet = this.initFoesBullet();
+                bullet = this.initFoesBullet()
             }
 
             // bullet can't be null
@@ -196,26 +212,13 @@ class Game extends Phaser.State {
             foe.bulletTime = this.game.time.now + 200
         }
     }
-    playerGetHit () {
-        if(this.game.time.now > this.invincibilityTime) {
-
-            this.hp--;
-            this.invincibilityTime = this.game.time.now + 1000
-            this.lives.setText("Vies :" + this.hp);
-        }
-        if(this.hp <= 0) {
-            // Game Over
-            this.player.kill();
-        }
-    }
     initFoesBullet () {
-        let b = this.foesBullets.create(0, 0, 'foesBullet');
-        b.name = 'foesBullet' + (this.foesBullets.length + 1);
-        b.exists = false;
-        b.visible = false;
-        b.checkWorldBounds = true;
-        b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
+        let b = this.foesBullets.create(0, 0, 'foesBullet')
+        b.name = 'foesBullet' + (this.foesBullets.length + 1)
+        b.exists = false
+        b.visible = false
+        b.checkWorldBounds = true
+        b.events.onOutOfBounds.add((bullet) => bullet.kill(), this)
         return b
     }
-
 }
