@@ -12,6 +12,11 @@ class Game extends Phaser.State {
         this.game.load.image('bullet','assets/bullet.png')
         this.game.load.image('foesBullet','assets/foesBullet.png')
         this.game.load.image('gamepad','assets/gamepad.png')
+
+        this.game.load.image('particule1','assets/particules/particule1.png')
+        this.game.load.image('particule2','assets/particules/particule2.png')
+        this.game.load.image('particule3','assets/particules/particule3.png')
+        this.game.load.image('particule4','assets/particules/particule4.png')
     }
 
 
@@ -36,10 +41,19 @@ class Game extends Phaser.State {
         this.background.events.onInputDown.add(() => this.shoot(),this)
 
         // Sprites
+
+        this.playerEmitter = this.game.add.emitter(game.world.centerX, game.world.centerY, 150);
+        this.playerEmitter.makeParticles( [ 'particule1', 'particule2', 'particule3', 'particule4' ] );
+        this.playerEmitter.setAlpha(.7, 0, 2000);
+        this.playerEmitter.setScale(0.8, 0, 0.8, 0, 2000);
+        this.playerEmitter.start(false, 2000, 5);
+
         this.player = this.game.add.sprite(0,0,'player')
         this.player.y = window.innerHeight - this.player.height / 2
         this.player.x = window.innerWidth / 2
         this.player.anchor.setTo(0.5,0.5)
+
+
         // Bullets
         this.foes = this.game.add.group();
         this.foes.enableBody = true;
@@ -117,6 +131,10 @@ class Game extends Phaser.State {
         if (!this.game.input.gamepad.supported || !this.game.input.gamepad.active || !this.gamepad.connected) {
           this.player.rotation = game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
         }
+        this.playerEmitter.x = this.player.x - 30  * Math.sin(this.player.rotation)
+        this.playerEmitter.y = this.player.y + 30  * Math.cos(this.player.rotation)
+        this.playerEmitter.on = (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y) > .5)
+
         this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
         this.updateGamePad()
     }
