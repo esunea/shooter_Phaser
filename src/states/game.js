@@ -103,8 +103,8 @@ class Game extends Phaser.State {
         this.player.body.velocity.y = 0
         this.player.body.velocity.x = 0
         this.movePlayer()
-        this.player.rotation = game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
-        this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
+        this.player.rotation = this.game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
+        this.foes.forEachAlive(foe => foe.rotation = this.game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
     }
     bindKey (index, keys, onUp = null, onDown = null) {
         keys.forEach(key => {
@@ -145,6 +145,7 @@ class Game extends Phaser.State {
 
         if (this.keys.shoot) {
             this.foesShoot()
+            console.log(this.foesBullets.length); 
         }
         if (this.keys.wow) {
             console.log("hey" + this.foes.length)
@@ -161,7 +162,7 @@ class Game extends Phaser.State {
                 let angle = this.game.physics.arcade.angleToPointer(this.player)
                 bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
                 bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
-                bullet.rotation = angle  + Math.PI / 2
+                bullet.rotation = angle + Math.PI / 2
                 this.bulletTime = this.game.time.now + 150
             }
         }
@@ -179,24 +180,25 @@ class Game extends Phaser.State {
     }
     addFoesBullet (foe) {
         if (this.game.time.now > foe.bulletTime) {
-            const bullet = this.foesBullets.getFirstExists(false)
-
-            if (bullet) {
-                console.log(foe.name)
-                bullet.reset(foe.x, foe.y )
-                bullet.anchor.setTo(0.5,0.5)
-                let angle = this.game.physics.arcade.angleBetween(foe,this.player)
-                bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
-                bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
-                bullet.rotation = angle  + Math.PI / 2
-                foe.bulletTime = this.game.time.now + 200
-
+            let bullet = this.foesBullets.getFirstExists(false)
+            if (!bullet) {
+                bullet = this.initFoesBullet();
             }
+
+            // bullet can't be null
+            console.log(foe.name)
+            bullet.reset(foe.x, foe.y )
+            bullet.anchor.setTo(0.5,0.5)
+            let angle = this.game.physics.arcade.angleBetween(foe,this.player)
+            bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
+            bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
+            bullet.rotation = angle + Math.PI / 2
+            foe.bulletTime = this.game.time.now + 200
         }
     }
     playerGetHit () {
         if(this.game.time.now > this.invincibilityTime) {
-            
+
             this.hp--;
             this.invincibilityTime = this.game.time.now + 1000
             this.lives.setText("Vies :" + this.hp);
@@ -205,8 +207,15 @@ class Game extends Phaser.State {
             // Game Over
             this.player.kill();
         }
-
-
+    }
+    initFoesBullet () {
+        let b = this.foesBullets.create(0, 0, 'foesBullet');
+        b.name = 'foesBullet' + (this.foesBullets.length + 1);
+        b.exists = false;
+        b.visible = false;
+        b.checkWorldBounds = true;
+        b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
+        return b
     }
 
 }
