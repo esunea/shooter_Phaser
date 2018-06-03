@@ -12,7 +12,7 @@ class Game extends Phaser.State {
         this.game.load.spritesheet('bullet', 'assets/bullet-sheet.png', 12, 25)
         this.game.load.spritesheet('foesBullet', 'assets/foesBullet-sheet.png', 12, 25)
         this.game.load.image('gamepad','assets/gamepad.png')
-        this.game.load.image('crosshair','assets/crosshair.png')
+        this.game.load.spritesheet('crosshair', 'assets/crosshair-sheet.png', 64, 64)
 
         this.game.load.image('particule1','assets/particules/particule1.png')
         this.game.load.image('particule2','assets/particules/particule2.png')
@@ -83,16 +83,18 @@ class Game extends Phaser.State {
             b.name = 'foesBullet' + i;
             b.exists = false;
             b.visible = false;
-            b.animations.add('live');
-            b.checkWorldBounds = true;
+            b.animations.add('live')
+            b.checkWorldBounds = true
             b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
         }
 
         // UI
         this.gamepadIcon = this.game.add.sprite(10,10,'gamepad')
         this.gamepadIcon.opacity = 1
-        this.crosshair = this.game.add.sprite(-99,-99,'crosshair')
+        this.crosshair = this.game.add.sprite(-999,-999,'crosshair')
         this.crosshair.anchor.setTo(0.5,0.5)
+        this.crosshair.animations.add('live')
+        this.crosshair.animations.play('live', 5, true)
 
 
         // Inputs
@@ -135,6 +137,8 @@ class Game extends Phaser.State {
         this.movePlayer()
         if (!this.game.input.gamepad.supported || !this.game.input.gamepad.active || !this.gamepad.connected) {
           this.player.rotation = game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
+          this.crosshair.x = game.input.x
+          this.crosshair.y = game.input.y
         }
         this.playerEmitter.x = this.player.x - 30  * Math.sin(this.player.rotation)
         this.playerEmitter.y = this.player.y + 30  * Math.cos(this.player.rotation)
@@ -142,8 +146,6 @@ class Game extends Phaser.State {
 
         this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
         this.updateGamePad()
-        this.crosshair.x = game.input.x
-        this.crosshair.y = game.input.y
     }
     updateGamePad () {
       if (this.game.input.gamepad.supported && this.game.input.gamepad.active && this.gamepad.connected) {
