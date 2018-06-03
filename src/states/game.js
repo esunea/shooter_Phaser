@@ -9,8 +9,8 @@ class Game extends Phaser.State {
         this.game.load.image('player', 'assets/player.png')
         this.game.load.image('background', 'assets/background.png')
         this.game.load.image('foe', 'assets/foe.png')
-        this.game.load.image('bullet','assets/bullet.png')
-        this.game.load.image('foesBullet','assets/foesBullet.png')
+        this.game.load.spritesheet('bullet', 'assets/bullet-sheet.png', 12, 25);
+        this.game.load.spritesheet('foesBullet', 'assets/foesBullet-sheet.png', 12, 25);
         this.game.load.image('gamepad','assets/gamepad.png')
 
         this.game.load.image('particule1','assets/particules/particule1.png')
@@ -69,6 +69,7 @@ class Game extends Phaser.State {
             b.name = 'bullet' + i;
             b.exists = false;
             b.visible = false;
+            b.animations.add('live');
             b.checkWorldBounds = true;
             b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
         }
@@ -81,6 +82,7 @@ class Game extends Phaser.State {
             b.name = 'foesBullet' + i;
             b.exists = false;
             b.visible = false;
+            b.animations.add('live');
             b.checkWorldBounds = true;
             b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
         }
@@ -209,6 +211,7 @@ class Game extends Phaser.State {
                 let angle = this.player.rotation - Math.PI / 2
                 bullet.reset(this.player.x + 30 * Math.cos(angle), this.player.y + 30 * Math.sin(angle))
                 bullet.anchor.setTo(0.5,0.5)
+                bullet.animations.play('live', 10, true);
                 bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
                 bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
                 bullet.rotation = angle  + Math.PI / 2
@@ -237,6 +240,7 @@ class Game extends Phaser.State {
                 bullet.anchor.setTo(0.5,0.5)
                 let angle = this.game.physics.arcade.angleBetween(foe,this.player)
                 bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
+                bullet.animations.play('live', 10, true);
                 bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
                 bullet.rotation = angle  + Math.PI / 2
                 foe.bulletTime = this.game.time.now + 200
