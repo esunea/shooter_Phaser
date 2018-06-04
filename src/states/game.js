@@ -118,6 +118,7 @@ class Game extends Phaser.State {
         this.bindKey('left', [Phaser.Keyboard.Q, Phaser.Keyboard.LEFT])
         this.bindKey('right', [Phaser.Keyboard.D, Phaser.Keyboard.RIGHT])
         this.bindKey('shoot',[Phaser.Keyboard.SPACEBAR],() => this.foesShoot())
+        this.bindKey(null,[Phaser.Keyboard.K],() => this.toggleDebug())
 
         this.bindKey(null, [Phaser.Keyboard.G], () => this.addFoe())
         this.bindKey('wow',[Phaser.Keyboard.A])
@@ -126,7 +127,7 @@ class Game extends Phaser.State {
     setupGamepadInputs () {
         this.game.input.gamepad.start()
         this.gamepad = this.game.input.gamepad.pad1;
-        this.buttonX = this.buttonY = false
+        this.buttonX = this.buttonY = this.buttonBACK = false
     }
 
     update () {
@@ -185,6 +186,14 @@ class Game extends Phaser.State {
             } else {
                 this.buttonX = false
             }
+            if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_BACK)) {
+                if (this.buttonBACK === false) {
+                    this.toggleDebug();
+                    this.buttonBACK = true
+                }
+            } else {
+                this.buttonBACK = false
+            }
             if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_Y)) {
                 if (this.buttonY === false) {
                     this.foesShoot();
@@ -233,6 +242,12 @@ class Game extends Phaser.State {
     }
     _startGame () {
         console.log("hello")
+    }
+    toggleDebug () {
+        this.debug = !this.debug
+        if (!this.debug) {
+            this.game.debug.reset();
+        }
     }
     // Player
     movePlayer () {
@@ -338,5 +353,13 @@ class Game extends Phaser.State {
         b.checkWorldBounds = true
         b.events.onOutOfBounds.add((bullet) => bullet.kill(), this)
         return b
+    }
+    render () {
+        if (this.debug) {
+            this.game.debug.body(this.player);
+            this.foes.forEach(foe => this.game.debug.body(foe))
+            this.bullets.forEach(bullet => this.game.debug.body(bullet))
+            this.foesBullets.forEach(bullet => this.game.debug.body(bullet))
+        }
     }
 }
