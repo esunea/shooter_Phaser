@@ -149,6 +149,9 @@ class Game extends Phaser.State {
           this.player.rotation = game.physics.arcade.angleToPointer(this.player) + Math.PI / 2;
           this.crosshair.x = game.input.x
           this.crosshair.y = game.input.y
+          if (!this.crosshair.visible) this.crosshair.visible = true
+        } else {
+          this.crosshair.visible = false
         }
         this.playerEmitter.x = this.player.x - 30  * Math.sin(this.player.rotation)
         this.playerEmitter.y = this.player.y + 30  * Math.cos(this.player.rotation)
