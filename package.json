@@ -17,9 +17,12 @@
   },
   "homepage": "https://github.com/esunea/shooter_Phaser#readme",
   "eslintConfig": {
-      "globals": {
-          "Phaser": true,
-          "console": true
-      }
+    "globals": {
+      "Phaser": true,
+      "console": true
+    }
+  },
+  "dependencies": {
+    "eslint": "^4.19.1"
   }
 }
