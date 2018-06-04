@@ -121,13 +121,14 @@ class Game extends Phaser.State {
         this.bindKey(null,[Phaser.Keyboard.K],() => this.toggleDebug())
 
         this.bindKey(null, [Phaser.Keyboard.G], () => this.addFoe())
+        this.bindKey(null, [Phaser.Keyboard.R], () => this.resetPlayer())
         this.bindKey('wow',[Phaser.Keyboard.A])
     }
 
     setupGamepadInputs () {
         this.game.input.gamepad.start()
         this.gamepad = this.game.input.gamepad.pad1;
-        this.buttonX = this.buttonY = this.buttonBACK = false
+        this.buttonX = this.buttonY = this.buttonBACK = this.buttonSTART = false
     }
 
     update () {
@@ -137,8 +138,10 @@ class Game extends Phaser.State {
             foe.destroy()
         } , null, this)
         this.game.physics.arcade.overlap(this.foesBullets, this.player, (player,foeBullet) => {
-            foeBullet.kill()
-            this.playerGetHit();
+            if (this.game.time.now > this.invincibilityTime) {
+                foeBullet.kill()
+                this.playerGetHit();
+            }
         } , null, this)
 
         this.player.body.velocity.y = 0
@@ -185,6 +188,14 @@ class Game extends Phaser.State {
                 }
             } else {
                 this.buttonX = false
+            }
+            if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_START)) {
+                if (this.buttonX === false) {
+                    this.resetPlayer();
+                    this.buttonSTART = true
+                }
+            } else {
+                this.buttonSTART = false
             }
             if(this.gamepad.isDown(Phaser.Gamepad.XBOX360_BACK)) {
                 if (this.buttonBACK === false) {
@@ -271,12 +282,14 @@ class Game extends Phaser.State {
             console.log("hey" + this.foes.length)
         }
     }
+    resetPlayer () {
+        this.hp = 3
+        this.updateHearts()
+        this.player.reset(window.innerHeight - this.player.height / 2, window.innerWidth / 2)
+    }
     playerGetHit () {
-        if(this.game.time.now > this.invincibilityTime) {
-
-            this.hp--
-            this.invincibilityTime = this.game.time.now + 1000
-        }
+        this.hp--
+        this.invincibilityTime = this.game.time.now + 1000
         if(this.hp <= 0) {
             // Game Over
             this.player.kill()
