@@ -31,9 +31,10 @@ class Game extends Phaser.State {
         this.keys = {
             up : 0,
             down : 0,
-            shoot : 0,
+            space : 0,
             left : 0,
-            right : 0
+            right : 0,
+            lclic : 0
         }
 
         console.log("Game!")
@@ -41,8 +42,8 @@ class Game extends Phaser.State {
         this.background.width = this.game.width
         this.background.height = this.game.height
         this.background.inputEnabled = true
-        this.background.events.onInputDown.add(() => this.shoot(),this)
-
+        this.background.events.onInputDown.add(() => this.keys.lclic = 1,this)
+        this.background.events.onInputUp.add(() => this.keys.lclic = 0,this)
         // Sprites
         this.playerEmitter = this.game.add.emitter(this.game.world.centerX, this.game.world.centerY, 150)
         this.playerEmitter.makeParticles( ['particule1', 'particule2', 'particule3', 'particule4'] )
@@ -55,7 +56,6 @@ class Game extends Phaser.State {
         this.player.x = window.innerWidth / 2
         this.player.anchor.setTo(0.5,0.5)
 
-
         // Bullets
         this.foes = this.game.add.group()
         this.foes.enableBody = true
@@ -65,30 +65,9 @@ class Game extends Phaser.State {
         this.bullets.enableBody = true
         this.bullets.physicsBodyType = Phaser.Physics.ARCADE
 
-        for (let i = 0; i < 20; i++) {
-            let b = this.bullets.create(0, 0, 'bullet');
-            b.name = 'bullet' + i;
-            b.exists = false;
-            b.visible = false;
-            b.animations.add('live');
-            b.checkWorldBounds = true;
-
-            b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
-        }
         this.foesBullets = this.game.add.group();
         this.foesBullets.enableBody = true;
         this.foesBullets.physicsBodyType = Phaser.Physics.ARCADE;
-
-
-        for (let i = 0; i < 20; i++) {
-            let b = this.foesBullets.create(0, 0, 'foesBullet');
-            b.name = 'foesBullet' + i;
-            b.exists = false;
-            b.visible = false;
-            b.animations.add('live')
-            b.checkWorldBounds = true
-            b.events.onOutOfBounds.add((bullet) => bullet.kill(), this);
-        }
 
         // UI
         this.gamepadIcon = this.game.add.sprite(10,window.innerHeight - 64,'gamepad')
@@ -117,11 +96,11 @@ class Game extends Phaser.State {
         this.bindKey('down', [Phaser.Keyboard.S, Phaser.Keyboard.DOWN])
         this.bindKey('left', [Phaser.Keyboard.Q, Phaser.Keyboard.LEFT])
         this.bindKey('right', [Phaser.Keyboard.D, Phaser.Keyboard.RIGHT])
-        this.bindKey('shoot',[Phaser.Keyboard.SPACEBAR],() => this.foesShoot())
         this.bindKey(null,[Phaser.Keyboard.K],() => this.toggleDebug())
-
         this.bindKey(null, [Phaser.Keyboard.G], () => this.addFoe())
         this.bindKey(null, [Phaser.Keyboard.R], () => this.resetPlayer())
+        this.bindKey('space',[Phaser.Keyboard.SPACEBAR],() => this.foesShoot())
+        this.bindKey('e',[Phaser.Keyboard.E])
         this.bindKey('wow',[Phaser.Keyboard.A])
     }
 
@@ -232,6 +211,7 @@ class Game extends Phaser.State {
         }
     }
     bindKey (index, keys, onUp = null, onDown = null) {
+        // n'execute les callbacks que si index == null
         keys.forEach(key => {
             const registredKey = this.game.input.keyboard.addKey(key)
             registredKey.onDown.add(() => {
@@ -272,13 +252,17 @@ class Game extends Phaser.State {
         }else if (this.keys.down) {
             this.player.body.velocity.y = +300
         }
-
-
-        if (this.keys.shoot) {
-            this.foesShoot()
-            console.log(this.foesBullets.length)
+        if (this.keys.e) {
+            this.bomb()
         }
-        if (this.keys.wow) {
+
+        if (this.keys.lclic) {
+            this.shoot()
+        }
+        if (this.keys.space) {
+            this.foesShoot()
+        }
+        if (this.keys.a) {
             console.log("hey" + this.foes.length)
         }
     }
@@ -296,21 +280,28 @@ class Game extends Phaser.State {
         }
         this.updateHearts()
     }
+    bomb () {
+        this.foes.forEach((foe) => foe.kill());
+        this.foesBullets.forEach((bullet) => bullet.kill())
+    }
+
     // Player Bullets
     shoot () {
         if (this.game.time.now > this.bulletTime) {
-            const bullet = this.bullets.getFirstExists(false)
+            let bullet = this.bullets.getFirstExists(false)
 
-            if (bullet) {
-                let angle = this.player.rotation - Math.PI / 2
-                bullet.reset(this.player.x + 30 * Math.cos(angle), this.player.y + 30 * Math.sin(angle))
-                bullet.anchor.setTo(0.5,0.5)
-                bullet.animations.play('live', 10, true);
-                bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
-                bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
-                bullet.rotation = angle + Math.PI / 2
-                this.bulletTime = this.game.time.now + 150
+            if (!bullet) {
+                bullet = this.initBullet()
+
             }
+            let angle = this.player.rotation - Math.PI / 2
+            bullet.reset(this.player.x + 30 * Math.cos(angle), this.player.y + 30 * Math.sin(angle))
+            bullet.anchor.setTo(0.5,0.5)
+            bullet.animations.play('live', 10, true);
+            bullet.body.velocity.x = this.bulletSpeed * Math.cos(angle)
+            bullet.body.velocity.y = this.bulletSpeed * Math.sin(angle)
+            bullet.rotation = angle + Math.PI / 2
+            this.bulletTime = this.game.time.now + 500
         }
 
 
@@ -321,6 +312,7 @@ class Game extends Phaser.State {
         b.exists = false
         b.visible = false
         b.checkWorldBounds = true
+        b.animations.add('live')
         b.events.onOutOfBounds.add((bullet) => bullet.kill(), this)
         return b
     }
@@ -363,6 +355,7 @@ class Game extends Phaser.State {
         b.name = 'foesBullet' + (this.foesBullets.length + 1)
         b.exists = false
         b.visible = false
+        b.animations.add('live')
         b.checkWorldBounds = true
         b.events.onOutOfBounds.add((bullet) => bullet.kill(), this)
         return b
@@ -375,4 +368,5 @@ class Game extends Phaser.State {
             this.foesBullets.forEach(bullet => this.game.debug.body(bullet))
         }
     }
+
 }
