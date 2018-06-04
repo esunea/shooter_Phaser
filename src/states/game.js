@@ -11,6 +11,7 @@ class Game extends Phaser.State {
         this.game.load.image('foe', 'assets/foe.png')
         this.game.load.spritesheet('bullet', 'assets/bullet-sheet.png', 12, 25)
         this.game.load.spritesheet('foesBullet', 'assets/foesBullet-sheet.png', 12, 25)
+        this.game.load.spritesheet('heart', 'assets/heart.png', 53, 45)
         this.game.load.image('gamepad','assets/gamepad.png')
         this.game.load.spritesheet('crosshair', 'assets/crosshair-sheet.png', 64, 64)
 
@@ -42,7 +43,6 @@ class Game extends Phaser.State {
         this.background.events.onInputDown.add(() => this.shoot(),this)
 
         // Sprites
-
         this.playerEmitter = this.game.add.emitter(game.world.centerX, game.world.centerY, 150);
         this.playerEmitter.makeParticles( [ 'particule1', 'particule2', 'particule3', 'particule4' ] );
         this.playerEmitter.setAlpha(.7, 0, 2000);
@@ -65,8 +65,6 @@ class Game extends Phaser.State {
         this.bullets.physicsBodyType = Phaser.Physics.ARCADE
 
         for (let i = 0; i < 20; i++) {
-
-
             let b = this.bullets.create(0, 0, 'bullet');
             b.name = 'bullet' + i;
             b.exists = false;
@@ -92,7 +90,7 @@ class Game extends Phaser.State {
         }
 
         // UI
-        this.gamepadIcon = this.game.add.sprite(10,10,'gamepad')
+        this.gamepadIcon = this.game.add.sprite(10,window.innerHeight - 64,'gamepad')
         this.gamepadIcon.opacity = 1
         this.crosshair = this.game.add.sprite(-999,-999,'crosshair')
         this.crosshair.anchor.setTo(0.5,0.5)
@@ -109,8 +107,10 @@ class Game extends Phaser.State {
         this.game.physics.enable(this.player,Phaser.Physics.ARCADE)
 
         // Interface
-        console.log("Vies : " + this.hp)
-        this.lives = this.game.add.text(0, 0,"Vies : " + this.hp, {font: "65px Arial", fill: "#ff0044", align: "center"});
+        this.hearts = []
+        for (var i = 0; i < this.hp; i++) {
+          this.hearts.push(this.game.add.sprite(10 + 55 * i,10,'heart'))
+        }
     }
 
     setupInputs () {
@@ -193,6 +193,12 @@ class Game extends Phaser.State {
       }
 
     }
+    updateHearts () {
+      for (var i = 0; i < this.hearts.length; i++) {
+        if (i+1 <= this.hp) this.hearts[i].frame = 0
+        else this.hearts[i].frame = 1
+      }
+    }
     bindKey (index, keys, onUp = null, onDown = null) {
         keys.forEach(key => {
             const registredKey = this.game.input.keyboard.addKey(key)
@@ -243,12 +249,12 @@ class Game extends Phaser.State {
 
             this.hp--
             this.invincibilityTime = this.game.time.now + 1000
-            this.lives.setText("Vies :" + this.hp)
         }
         if(this.hp <= 0) {
             // Game Over
             this.player.kill()
         }
+        this.updateHearts()
     }
     // Player Bullets
     shoot () {
