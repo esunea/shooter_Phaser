@@ -158,7 +158,7 @@ class Game extends Phaser.State {
         }
         this.playerEmitter.x = this.player.x - 30 * Math.sin(this.player.rotation)
         this.playerEmitter.y = this.player.y + 30 * Math.cos(this.player.rotation)
-        this.playerEmitter.on = (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y) > .5)
+        this.playerEmitter.on = (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y) > .5) && this.player.alive
 
         this.foes.forEachAlive(foe => foe.rotation = this.game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
         this.updateGamePad()
