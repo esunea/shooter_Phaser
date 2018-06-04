@@ -159,6 +159,15 @@ class Game extends Phaser.State {
 
         this.foes.forEachAlive(foe => foe.rotation = game.physics.arcade.angleBetween(this.player, foe) - Math.PI / 2)
         this.updateGamePad()
+        if (this.game.time.now <= this.invincibilityTime) {
+          if (this.game.time.now % 2 === 0) {
+            this.player.alpha = .1
+          } else {
+            this.player.alpha = 1
+          }
+        } else if (this.player.alpha != 1) {
+          this.player.alpha = 1
+        }
     }
     updateGamePad () {
       if (this.game.input.gamepad.supported && this.game.input.gamepad.active && this.gamepad.connected) {
